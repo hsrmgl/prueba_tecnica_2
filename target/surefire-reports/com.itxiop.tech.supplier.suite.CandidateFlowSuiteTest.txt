@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.itxiop.tech.supplier.suite.CandidateFlowSuiteTest
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.226 s -- in com.itxiop.tech.supplier.suite.CandidateFlowSuiteTest
