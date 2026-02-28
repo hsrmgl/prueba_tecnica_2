@@ -1,0 +1,2837 @@
+{
+	"info": {
+		"_postman_id": "7270e39f-0c6f-4eca-8272-641895661a3d",
+		"name": "Gestión de Proveedores Inditex",
+		"description": "Colección de pruebas Postman para validar el correcto funcionamiento de la API de Gestión de Proveedores Inditex. Basada en la arquitectura y especificaciones OpenAPI del proyecto.\n\nBase URL: http://localhost:8080",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Candidatos — Crear candidatura",
+			"item": [
+				{
+					"name": "1.1 Crear candidato con datos válidos → 201",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Textiles Europa S.L.\",\n  \"duns\": 123456789,\n  \"country\": \"ES\",\n  \"annualTurnover\": 5000000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Crear candidato con datos válidos. Respuesta esperada: 201 Created."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+									"pm.test(\"Response has correct DUNS\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.duns).to.eql(123456789);",
+									"    pm.expect(body.name).to.eql(\"Textiles Europa S.L.\");",
+									"    pm.expect(body.country).to.eql(\"ES\");",
+									"    pm.expect(body.annualTurnover).to.eql(5000000);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "1.2 Crear candidato duplicado → 409",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Textiles Europa S.L.\",\n  \"duns\": 123456789,\n  \"country\": \"ES\",\n  \"annualTurnover\": 5000000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Enviar la misma petición dos veces para el mismo DUNS. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));",
+									"pm.test(\"Error body has info field\", () => {",
+									"    pm.expect(pm.response.json().info).to.be.a(\"string\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "1.3 Crear candidato con DUNS inválido (fuera de rango) → 400",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test\",\n  \"duns\": 12345,\n  \"country\": \"ES\",\n  \"annualTurnover\": 5000000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Crear candidato con DUNS inválido (fuera de rango). Respuesta esperada: 400 Bad Request."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "1.4 Crear candidato con país inválido → 400/422",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test\",\n  \"duns\": 123456780,\n  \"country\": \"ESPAÑA\",\n  \"annualTurnover\": 5000000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Crear candidato con país inválido (formato incorrecto). Respuesta esperada: 400 Bad Request o 422 Unprocessable Entity."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400 or 422\", () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "1.5 Crear candidato con facturación negativa → 400/422",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test\",\n  \"duns\": 123456780,\n  \"country\": \"ES\",\n  \"annualTurnover\": -100\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Crear candidato con facturación negativa. Respuesta esperada: 400 Bad Request o 422 Unprocessable Entity."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400 or 422\", () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "1.6 Crear candidato con DUNS de proveedor descalificado → 409",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Proveedor Descalificado\",\n  \"duns\": 999888777,\n  \"country\": \"ES\",\n  \"annualTurnover\": 5000000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Si existe un proveedor con estado DISQUALIFIED para ese DUNS, no se permite volver a aplicar. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "2. Candidatos — Obtener candidato",
+			"item": [
+				{
+					"name": "2.1 Obtener candidato existente → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/candidates/123456789",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "123456789"]
+						},
+						"description": "Obtener candidato existente. Respuesta esperada: 200 OK."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Response has candidate data\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.duns).to.eql(123456789);",
+									"    pm.expect(body.name).to.be.a(\"string\");",
+									"    pm.expect(body.country).to.be.a(\"string\");",
+									"    pm.expect(body.annualTurnover).to.be.a(\"number\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "2.2 Obtener candidato inexistente → 404",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/candidates/999999999",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "999999999"]
+						},
+						"description": "Obtener candidato inexistente. Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "2.3 Obtener candidato ya aceptado como proveedor → 404",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/candidates/123456789",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "123456789"]
+						},
+						"description": "Una vez aceptado, ya no es candidato sino proveedor, por lo que no aparece en el endpoint de candidatos. Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "3. Candidatos — Aceptar candidato",
+			"item": [
+				{
+					"name": "3.1 Aceptar candidato con rating A → 204",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates/123456789/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "123456789", "accept"]
+						},
+						"description": "Aceptar candidato con rating A (país aprobado, facturación ≥ 1M€). Respuesta esperada: 204 No Content."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));",
+									"pm.test(\"Response body is empty\", () => {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3.2 Aceptar candidato con rating C → 204 (ON_PROBATION)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sustainabilityRating\": \"C\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates/234567890/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "234567890", "accept"]
+						},
+						"description": "Aceptar candidato con rating C. El proveedor queda ON_PROBATION. Respuesta esperada: 204 No Content."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3.3 Aceptar candidato con país prohibido → 409",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates/333333333/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "333333333", "accept"]
+						},
+						"description": "Aceptar candidato con un país que esté en la lista de prohibidos. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3.4 Setup - Crear candidato con facturación baja",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Micro Empresa\",\n  \"duns\": 111111111,\n  \"country\": \"ES\",\n  \"annualTurnover\": 500000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Setup: Crear candidato con facturación inferior a 1M€ para luego intentar aceptarlo."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3.4 Aceptar candidato con facturación inferior a 1M€ → 409",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates/111111111/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "111111111", "accept"]
+						},
+						"description": "Aceptar candidato con facturación inferior a 1M€. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3.5 Aceptar candidato inexistente → 404",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates/999999999/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "999999999", "accept"]
+						},
+						"description": "Aceptar candidato inexistente. Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3.6 Aceptar candidato con rating inválido → 400",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sustainabilityRating\": \"X\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates/123456789/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "123456789", "accept"]
+						},
+						"description": "Aceptar candidato con rating inválido. Respuesta esperada: 400 Bad Request."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3.7 Aceptar candidato ya rechazado → 404/409",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates/444444444/accept",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "444444444", "accept"]
+						},
+						"description": "Un candidato rechazado ya no es un candidato activo. Respuesta esperada: 404 Not Found o 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404 or 409\", () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404, 409]);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "4. Candidatos — Rechazar candidato",
+			"item": [
+				{
+					"name": "4.1 Rechazar candidato activo → 204",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/candidates/123456789/refuse",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "123456789", "refuse"]
+						},
+						"description": "Rechazar candidato activo. Respuesta esperada: 204 No Content."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4.2 Rechazar candidato inexistente → 404",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/candidates/999999999/refuse",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "999999999", "refuse"]
+						},
+						"description": "Rechazar candidato inexistente. Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4.3 Rechazar candidato ya rechazado → 409",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/candidates/123456789/refuse",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates", "123456789", "refuse"]
+						},
+						"description": "Rechazar dos veces el mismo candidato. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4.4 Re-aplicar después de ser rechazado → 201",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Textiles Europa S.L.\",\n  \"duns\": 123456789,\n  \"country\": \"ES\",\n  \"annualTurnover\": 5000000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Tras rechazar, enviar de nuevo POST /candidates con los mismos datos. Respuesta esperada: 201 Created."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "5. Proveedores — Obtener proveedor",
+			"item": [
+				{
+					"name": "5.1 Obtener proveedor activo → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/123456789",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "123456789"]
+						},
+						"description": "Obtener proveedor activo. Respuesta esperada: 200 OK."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Response has supplier fields\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.status).to.be.oneOf([\"Active\", \"Disqualified\"]);",
+									"    pm.expect(body.sustainabilityRating).to.be.oneOf([\"A\",\"B\",\"C\",\"D\",\"E\"]);",
+									"    pm.expect(body.duns).to.be.a(\"number\");",
+									"    pm.expect(body.name).to.be.a(\"string\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5.2 Obtener proveedor ON_PROBATION → 200 con status Active",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/234567890",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "234567890"]
+						},
+						"description": "Según las reglas de negocio, el estado ON_PROBATION se muestra como Active en la API. Respuesta esperada: 200 OK."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"ON_PROBATION shows as Active\", () => {",
+									"    pm.expect(pm.response.json().status).to.eql(\"Active\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5.3 Obtener proveedor descalificado → 200 con status Disqualified",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/555555555",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "555555555"]
+						},
+						"description": "Obtener proveedor descalificado. Respuesta esperada: 200 OK con status Disqualified."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Disqualified supplier shows correct status\", () => {",
+									"    pm.expect(pm.response.json().status).to.eql(\"Disqualified\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5.4 Obtener proveedor inexistente → 404",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/999999999",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "999999999"]
+						},
+						"description": "Obtener proveedor inexistente. Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5.5 Obtener proveedor con DUNS que es candidato → 404",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/123456789",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "123456789"]
+						},
+						"description": "Obtener proveedor con DUNS que es candidato (no proveedor). Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "6. Proveedores — Descalificar proveedor",
+			"item": [
+				{
+					"name": "6.1 Descalificar proveedor ON_PROBATION → 204",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/234567890/ban",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "234567890", "ban"]
+						},
+						"description": "Descalificar proveedor ON_PROBATION. Respuesta esperada: 204 No Content."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.1 Verificar proveedor descalificado → 200 Disqualified",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/234567890",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "234567890"]
+						},
+						"description": "Verificación posterior: GET /suppliers/234567890 debe devolver status: Disqualified."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Supplier is Disqualified\", () => {",
+									"    pm.expect(pm.response.json().status).to.eql(\"Disqualified\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.2 Descalificar proveedor ACTIVE → 409",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/123456789/ban",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "123456789", "ban"]
+						},
+						"description": "Un proveedor activo (rating A o B) no puede ser descalificado. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.3 Descalificar proveedor ya descalificado → 409",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/234567890/ban",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "234567890", "ban"]
+						},
+						"description": "Descalificar proveedor que ya está descalificado. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.4 Descalificar proveedor inexistente → 404",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/999999999/ban",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "999999999", "ban"]
+						},
+						"description": "Descalificar proveedor inexistente. Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6.5 Re-aplicar con DUNS de proveedor descalificado → 409",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Re-aplicar Descalificado\",\n  \"duns\": 234567890,\n  \"country\": \"ES\",\n  \"annualTurnover\": 5000000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/candidates",
+							"host": ["{{baseUrl}}"],
+							"path": ["candidates"]
+						},
+						"description": "Tras descalificar, intentar POST /candidates con el mismo DUNS. Respuesta esperada: 409 Conflict."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "7. Proveedores — Proveedores potenciales",
+			"item": [
+				{
+					"name": "7.1 Obtener proveedores potenciales con parámetros válidos → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=10&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "500000"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Obtener proveedores potenciales con parámetros válidos. Respuesta esperada: 200 OK."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Response has data and pagination\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.data).to.be.an(\"array\");",
+									"    pm.expect(body.pagination).to.be.an(\"object\");",
+									"    pm.expect(body.pagination.limit).to.be.a(\"number\");",
+									"    pm.expect(body.pagination.offset).to.be.a(\"number\");",
+									"    pm.expect(body.pagination.total).to.be.a(\"number\");",
+									"});",
+									"pm.test(\"Suppliers are sorted by score descending\", () => {",
+									"    const data = pm.response.json().data;",
+									"    for (let i = 1; i < data.length; i++) {",
+									"        pm.expect(data[i-1].score).to.be.at.least(data[i].score);",
+									"    }",
+									"});",
+									"pm.test(\"Each supplier has required fields\", () => {",
+									"    pm.response.json().data.forEach(s => {",
+									"        pm.expect(s.score).to.be.a(\"number\");",
+									"        pm.expect(s.duns).to.be.a(\"number\");",
+									"        pm.expect(s.name).to.be.a(\"string\");",
+									"        pm.expect(s.sustainabilityRating).to.be.oneOf([\"A\",\"B\",\"C\",\"D\",\"E\"]);",
+									"    });",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.2 Verificar que proveedores descalificados no aparecen → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=100&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "500000"
+								},
+								{
+									"key": "limit",
+									"value": "100"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Crear un proveedor, descalificarlo, y verificar que no aparece en la lista de potenciales."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"No disqualified suppliers in results\", () => {",
+									"    pm.response.json().data.forEach(s => {",
+									"        pm.expect(s.status).to.not.eql(\"Disqualified\");",
+									"    });",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.3 Verificar que solo aparecen proveedores con facturación > rate → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=100&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "500000"
+								},
+								{
+									"key": "limit",
+									"value": "100"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Solo los proveedores cuya facturación anual es mayor que el rate indicado deben aparecer."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"All suppliers have turnover > rate\", () => {",
+									"    const rate = 500000;",
+									"    pm.response.json().data.forEach(s => {",
+									"        pm.expect(s.annualTurnover).to.be.above(rate);",
+									"    });",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.4 Verificar cálculo de puntuación → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=100&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "500000"
+								},
+								{
+									"key": "limit",
+									"value": "100"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Verificar cálculo de puntuación: Puntuación = facturación × 0.1 × constante_rating."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Score is correctly calculated\", () => {",
+									"    const ratingConstants = { A: 1.0, B: 0.75, C: 0.5, D: 0.25, E: 0.1 };",
+									"    pm.response.json().data.forEach(s => {",
+									"        const expectedBase = s.annualTurnover * 0.1 * ratingConstants[s.sustainabilityRating];",
+									"        // Score might include 25% bonus, so should be >= base",
+									"        pm.expect(s.score).to.be.at.least(expectedBase);",
+									"    });",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.5 Verificar bonificación del 25% para pequeños proveedores → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=100&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "500000"
+								},
+								{
+									"key": "limit",
+									"value": "100"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Proveedores cuya facturación es una de las dos más bajas únicas de su país reciben un 25% extra."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Response has data array\", () => {",
+									"    pm.expect(pm.response.json().data).to.be.an(\"array\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.6 Verificar paginación (página 1) → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=2&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "500000"
+								},
+								{
+									"key": "limit",
+									"value": "2"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Verificar paginación con limit=2, offset=0."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Pagination respects limit\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.data.length).to.be.at.most(body.pagination.limit);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.6 Verificar paginación (página 2) → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=2&offset=2",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "500000"
+								},
+								{
+									"key": "limit",
+									"value": "2"
+								},
+								{
+									"key": "offset",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Verificar paginación con limit=2, offset=2."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Pagination respects limit\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.data.length).to.be.at.most(body.pagination.limit);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.7 Rate menor que 250 → 400",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential?rate=100",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"],
+							"query": [
+								{
+									"key": "rate",
+									"value": "100"
+								}
+							]
+						},
+						"description": "Rate menor que 250. Respuesta esperada: 400 Bad Request."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7.8 Sin parámetro rate → 400",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/potential",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "potential"]
+						},
+						"description": "Sin parámetro rate. Respuesta esperada: 400 Bad Request."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "8. Sostenibilidad — Actualizar calificación",
+			"item": [
+				{
+					"name": "8.1 Actualizar rating de A a D → ON_PROBATION",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"duns\": 123456789,\n  \"rating\": \"D\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sustainability/update",
+							"host": ["{{baseUrl}}"],
+							"path": ["sustainability", "update"]
+						},
+						"description": "Actualizar rating de proveedor activo de A a D. El proveedor pasa a ON_PROBATION."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200 or 204\", () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.1 Verificar proveedor con rating D → Active (ON_PROBATION)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/123456789",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "123456789"]
+						},
+						"description": "Verificación posterior: GET /suppliers/123456789 → status: Active (ON_PROBATION se muestra como Active), sustainabilityRating: D."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Supplier status is Active (ON_PROBATION)\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.status).to.eql(\"Active\");",
+									"    pm.expect(body.sustainabilityRating).to.eql(\"D\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.2 Actualizar rating de C a A → ACTIVE",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"duns\": 234567890,\n  \"rating\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sustainability/update",
+							"host": ["{{baseUrl}}"],
+							"path": ["sustainability", "update"]
+						},
+						"description": "Actualizar rating de proveedor ON_PROBATION (C) a A. El proveedor pasa a ACTIVE."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200 or 204\", () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.2 Verificar proveedor con rating A",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/suppliers/234567890",
+							"host": ["{{baseUrl}}"],
+							"path": ["suppliers", "234567890"]
+						},
+						"description": "Verificación posterior: GET /suppliers/234567890 → sustainabilityRating: A."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Supplier has rating A\", () => {",
+									"    pm.expect(pm.response.json().sustainabilityRating).to.eql(\"A\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8.3 Actualizar rating de proveedor descalificado → sin efecto o error",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"duns\": 555555555,\n  \"rating\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sustainability/update",
+							"host": ["{{baseUrl}}"],
+							"path": ["sustainability", "update"]
+						},
+						"description": "Actualizar rating de proveedor descalificado. Sin efecto o error esperado."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Request completes without server error\", () => {",
+									"    pm.expect(pm.response.code).to.be.below(500);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "9. Países — Consultar país",
+			"item": [
+				{
+					"name": "9.1 Consultar país existente y aprobado → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/countries/ES",
+							"host": ["{{baseUrl}}"],
+							"path": ["countries", "ES"]
+						},
+						"description": "Consultar país existente y aprobado. Respuesta esperada: 200 OK."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Country is not banned\", () => {",
+									"    const body = pm.response.json();",
+									"    pm.expect(body.name).to.eql(\"ES\");",
+									"    pm.expect(body.isBanned).to.eql(false);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "9.2 Consultar país baneado → 200",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/countries/XX",
+							"host": ["{{baseUrl}}"],
+							"path": ["countries", "XX"]
+						},
+						"description": "Consultar país baneado. Respuesta esperada: 200 OK con isBanned: true."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+									"pm.test(\"Country is banned\", () => {",
+									"    pm.expect(pm.response.json().isBanned).to.eql(true);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "9.3 Consultar país inexistente → 404",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/countries/ZZ",
+							"host": ["{{baseUrl}}"],
+							"path": ["countries", "ZZ"]
+						},
+						"description": "Consultar país inexistente. Respuesta esperada: 404 Not Found."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "10. Flujos E2E",
+			"item": [
+				{
+					"name": "Flujo 1 — Ciclo de vida feliz",
+					"item": [
+						{
+							"name": "F1.1 Crear candidato",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Flujo1 Proveedor S.A.\",\n  \"duns\": 100000001,\n  \"country\": \"ES\",\n  \"annualTurnover\": 3000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F1.2 Obtener candidato",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/candidates/100000001",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "100000001"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Candidate data is correct\", () => {",
+											"    const body = pm.response.json();",
+											"    pm.expect(body.duns).to.eql(100000001);",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F1.3 Aceptar candidato con rating A",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates/100000001/accept",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "100000001", "accept"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F1.4 Obtener proveedor activo",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/100000001",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "100000001"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Supplier is Active with rating A\", () => {",
+											"    const body = pm.response.json();",
+											"    pm.expect(body.status).to.eql(\"Active\");",
+											"    pm.expect(body.sustainabilityRating).to.eql(\"A\");",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F1.5 Candidato ya no existe",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/candidates/100000001",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "100000001"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+										]
+									}
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Flujo 2 — Rechazo y re-aplicación",
+					"item": [
+						{
+							"name": "F2.1 Crear candidato",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Flujo2 Empresa S.L.\",\n  \"duns\": 200000002,\n  \"country\": \"ES\",\n  \"annualTurnover\": 4000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F2.2 Rechazar candidato",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/candidates/200000002/refuse",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "200000002", "refuse"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F2.3 Candidato rechazado no encontrado",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/candidates/200000002",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "200000002"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F2.4 Re-aplicar con mismo DUNS",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Flujo2 Empresa S.L.\",\n  \"duns\": 200000002,\n  \"country\": \"ES\",\n  \"annualTurnover\": 4000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F2.5 Aceptar candidato con rating B",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sustainabilityRating\": \"B\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates/200000002/accept",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "200000002", "accept"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F2.6 Obtener proveedor activo",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/200000002",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "200000002"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Supplier is Active\", () => {",
+											"    pm.expect(pm.response.json().status).to.eql(\"Active\");",
+											"});"
+										]
+									}
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Flujo 3 — Proveedor en prueba → Descalificación",
+					"item": [
+						{
+							"name": "F3.1 Crear candidato",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Flujo3 Textil S.A.\",\n  \"duns\": 300000003,\n  \"country\": \"ES\",\n  \"annualTurnover\": 2000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F3.2 Aceptar con rating D (ON_PROBATION)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sustainabilityRating\": \"D\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates/300000003/accept",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "300000003", "accept"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F3.3 Verificar proveedor Active (ON_PROBATION)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/300000003",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "300000003"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Supplier status is Active (ON_PROBATION)\", () => {",
+											"    pm.expect(pm.response.json().status).to.eql(\"Active\");",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F3.4 Descalificar proveedor",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/300000003/ban",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "300000003", "ban"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F3.5 Verificar proveedor Disqualified",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/300000003",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "300000003"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Supplier is Disqualified\", () => {",
+											"    pm.expect(pm.response.json().status).to.eql(\"Disqualified\");",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F3.6 Re-aplicar con DUNS descalificado → 409",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Flujo3 Textil S.A.\",\n  \"duns\": 300000003,\n  \"country\": \"ES\",\n  \"annualTurnover\": 2000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 409\", () => pm.response.to.have.status(409));"
+										]
+									}
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Flujo 4 — Cambio de rating vía sostenibilidad",
+					"item": [
+						{
+							"name": "F4.1 Crear candidato",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Flujo4 Global S.L.\",\n  \"duns\": 400000004,\n  \"country\": \"ES\",\n  \"annualTurnover\": 6000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F4.2 Aceptar con rating A",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates/400000004/accept",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "400000004", "accept"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F4.3 Verificar proveedor con rating A",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/400000004",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "400000004"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Rating is A\", () => {",
+											"    pm.expect(pm.response.json().sustainabilityRating).to.eql(\"A\");",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F4.4 Actualizar rating a E",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"duns\": 400000004,\n  \"rating\": \"E\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/sustainability/update",
+									"host": ["{{baseUrl}}"],
+									"path": ["sustainability", "update"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200 or 204\", () => {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F4.5 Verificar proveedor con rating E (ON_PROBATION)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/400000004",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "400000004"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Rating is E and status Active (ON_PROBATION)\", () => {",
+											"    const body = pm.response.json();",
+											"    pm.expect(body.sustainabilityRating).to.eql(\"E\");",
+											"    pm.expect(body.status).to.eql(\"Active\");",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F4.6 Actualizar rating a A",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"duns\": 400000004,\n  \"rating\": \"A\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/sustainability/update",
+									"host": ["{{baseUrl}}"],
+									"path": ["sustainability", "update"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200 or 204\", () => {",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F4.7 Verificar proveedor con rating A (ACTIVE real)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/400000004",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "400000004"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Rating is A and status Active\", () => {",
+											"    const body = pm.response.json();",
+											"    pm.expect(body.sustainabilityRating).to.eql(\"A\");",
+											"    pm.expect(body.status).to.eql(\"Active\");",
+											"});"
+										]
+									}
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Flujo 5 — Proveedores potenciales",
+					"item": [
+						{
+							"name": "F5.1a Crear candidato 1 (5M€)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"F5 Empresa Alpha\",\n  \"duns\": 500000001,\n  \"country\": \"ES\",\n  \"annualTurnover\": 5000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.1a Aceptar candidato 1 con rating A",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sustainabilityRating\": \"A\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates/500000001/accept",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "500000001", "accept"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.1b Crear candidato 2 (3M€)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"F5 Empresa Beta\",\n  \"duns\": 500000002,\n  \"country\": \"ES\",\n  \"annualTurnover\": 3000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.1b Aceptar candidato 2 con rating B",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sustainabilityRating\": \"B\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates/500000002/accept",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "500000002", "accept"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.1c Crear candidato 3 (8M€)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"F5 Empresa Gamma\",\n  \"duns\": 500000003,\n  \"country\": \"ES\",\n  \"annualTurnover\": 8000000\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.1c Aceptar candidato 3 con rating C",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"sustainabilityRating\": \"C\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/candidates/500000003/accept",
+									"host": ["{{baseUrl}}"],
+									"path": ["candidates", "500000003", "accept"]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.2 Obtener proveedores potenciales (rate=1000000)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/potential?rate=1000000&limit=10&offset=0",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "potential"],
+									"query": [
+										{
+											"key": "rate",
+											"value": "1000000"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Only suppliers with turnover > 1M\", () => {",
+											"    pm.response.json().data.forEach(s => {",
+											"        pm.expect(s.annualTurnover).to.be.above(1000000);",
+											"    });",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.3 Verificar orden por score descendente",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/potential?rate=1000000&limit=10&offset=0",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "potential"],
+									"query": [
+										{
+											"key": "rate",
+											"value": "1000000"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Suppliers sorted by score descending\", () => {",
+											"    const data = pm.response.json().data;",
+											"    for (let i = 1; i < data.length; i++) {",
+											"        pm.expect(data[i-1].score).to.be.at.least(data[i].score);",
+											"    }",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.4 Verificar que descalificados no aparecen",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=100&offset=0",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "potential"],
+									"query": [
+										{
+											"key": "rate",
+											"value": "500000"
+										},
+										{
+											"key": "limit",
+											"value": "100"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"No disqualified suppliers\", () => {",
+											"    pm.response.json().data.forEach(s => {",
+											"        pm.expect(s.status).to.not.eql(\"Disqualified\");",
+											"    });",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.5a Paginación limit=1, offset=0",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=1&offset=0",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "potential"],
+									"query": [
+										{
+											"key": "rate",
+											"value": "500000"
+										},
+										{
+											"key": "limit",
+											"value": "1"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Only 1 result returned\", () => {",
+											"    pm.expect(pm.response.json().data.length).to.be.at.most(1);",
+											"});"
+										]
+									}
+								}
+							]
+						},
+						{
+							"name": "F5.5b Paginación limit=1, offset=1",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/suppliers/potential?rate=500000&limit=1&offset=1",
+									"host": ["{{baseUrl}}"],
+									"path": ["suppliers", "potential"],
+									"query": [
+										{
+											"key": "rate",
+											"value": "500000"
+										},
+										{
+											"key": "limit",
+											"value": "1"
+										},
+										{
+											"key": "offset",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+											"pm.test(\"Only 1 result returned\", () => {",
+											"    pm.expect(pm.response.json().data.length).to.be.at.most(1);",
+											"});"
+										]
+									}
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
