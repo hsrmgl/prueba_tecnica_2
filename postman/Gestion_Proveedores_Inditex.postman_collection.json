@@ -673,7 +673,7 @@
                 "accept"
               ]
             },
-            "description": "Aceptar candidato con un país que esté en la lista de prohibidos. Respuesta esperada: 409 Conflict."
+            "description": "Aceptar candidato con un país que esté en la lista de prohibidos. Respuesta esperada: 400 Bad Request."
           },
           "response": [],
           "event": [
@@ -751,7 +751,7 @@
                 "accept"
               ]
             },
-            "description": "Aceptar candidato con facturación inferior a 1M€. Respuesta esperada: 409 Conflict."
+            "description": "Aceptar candidato con facturación inferior a 1M€. Respuesta esperada: 400 Bad Request."
           },
           "response": [],
           "event": [
@@ -1977,7 +1977,7 @@
           ]
         },
         {
-          "name": "8.2 Actualizar rating de C a A → ACTIVE",
+          "name": "8.2 Actualizar rating de D a A → ACTIVE",
           "request": {
             "method": "POST",
             "header": [
@@ -2000,7 +2000,7 @@
                 "update"
               ]
             },
-            "description": "Actualizar rating de proveedor ON_PROBATION (C) a A. El proveedor pasa a ACTIVE."
+            "description": "Actualizar rating de proveedor ON_PROBATION (D) a A. El proveedor pasa a ACTIVE."
           },
           "response": [],
           "event": [
@@ -2032,7 +2032,7 @@
                 "123456789"
               ]
             },
-            "description": "Verificación posterior: GET /suppliers/234567890 → sustainabilityRating: A."
+            "description": "Verificación posterior: GET /suppliers/123456789 → sustainabilityRating: A."
           },
           "response": [],
           "event": [
