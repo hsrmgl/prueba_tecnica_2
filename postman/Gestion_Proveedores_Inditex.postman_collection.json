@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"_postman_id": "7270e39f-0c6f-4eca-8272-641895661a3d",
 		"name": "Gestión de Proveedores Inditex",
 		"description": "Colección de pruebas Postman para validar el correcto funcionamiento de la API de Gestión de Proveedores Inditex. Basada en la arquitectura y especificaciones OpenAPI del proyecto.\n\nBase URL: http://localhost:8080",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
