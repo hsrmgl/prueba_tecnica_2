@@ -30,7 +30,7 @@ public final class Supplier {
     return new Supplier(duns, name, country, annualTurnover, SupplierStatus.CANDIDATE, null);
   }
 
-  static Supplier rehydrate(Duns duns, String name, CountryCode country, Money annualTurnover,
+  public static Supplier rehydrate(Duns duns, String name, CountryCode country, Money annualTurnover,
                             SupplierStatus status, SustainabilityRating rating) {
     if ((status == SupplierStatus.CANDIDATE || status == SupplierStatus.DECLINED) && rating != null) {
       throw new DomainException("INVALID_STATE", "Candidate/declined cannot have rating");

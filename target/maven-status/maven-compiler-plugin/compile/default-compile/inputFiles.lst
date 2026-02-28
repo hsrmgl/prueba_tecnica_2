@@ -32,7 +32,6 @@
 /home/runner/work/prueba_tecnica_2/prueba_tecnica_2/src/main/java/com/itxiop/tech/supplier/sandbox/application/port/in/UpdateSustainabilityRatingUseCase.java
 /home/runner/work/prueba_tecnica_2/prueba_tecnica_2/src/main/java/com/itxiop/tech/supplier/sandbox/domain/policy/CountryPolicy.java
 /home/runner/work/prueba_tecnica_2/prueba_tecnica_2/src/main/java/com/itxiop/tech/supplier/sandbox/application/service/UpdateSustainabilityRatingService.java
-/home/runner/work/prueba_tecnica_2/prueba_tecnica_2/src/main/java/com/itxiop/tech/supplier/sandbox/adapters/in/rest/PotentialSuppliersController.java
 /home/runner/work/prueba_tecnica_2/prueba_tecnica_2/src/main/java/com/itxiop/tech/supplier/sandbox/domain/model/SupplierStatus.java
 /home/runner/work/prueba_tecnica_2/prueba_tecnica_2/src/main/java/com/itxiop/tech/supplier/sandbox/adapters/in/rest/dto/ErrorDto.java
 /home/runner/work/prueba_tecnica_2/prueba_tecnica_2/src/main/java/com/itxiop/tech/supplier/country/Country.java
