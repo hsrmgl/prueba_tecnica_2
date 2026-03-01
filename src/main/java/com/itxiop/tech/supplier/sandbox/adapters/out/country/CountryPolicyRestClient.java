@@ -3,12 +3,14 @@ package com.itxiop.tech.supplier.sandbox.adapters.out.country;
 import com.itxiop.tech.supplier.sandbox.domain.policy.CountryPolicy;
 import com.itxiop.tech.supplier.sandbox.domain.value.CountryCode;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 @Component
+@Lazy
 public class CountryPolicyRestClient implements CountryPolicy {
 
   private final RestClient restClient;

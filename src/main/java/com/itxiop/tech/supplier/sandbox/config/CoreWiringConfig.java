@@ -6,6 +6,7 @@ import com.itxiop.tech.supplier.sandbox.application.service.*;
 import com.itxiop.tech.supplier.sandbox.domain.policy.CountryPolicy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 public class CoreWiringConfig {
@@ -16,7 +17,7 @@ public class CoreWiringConfig {
   }
 
   @Bean(name = "acceptCandidateCore")
-  public AcceptCandidateUseCase acceptCandidateCore(SupplierRepositoryPort repo, CountryPolicy policy) {
+  public AcceptCandidateUseCase acceptCandidateCore(SupplierRepositoryPort repo, @Lazy CountryPolicy policy) {
     return new AcceptCandidateService(repo, policy);
   }
 
