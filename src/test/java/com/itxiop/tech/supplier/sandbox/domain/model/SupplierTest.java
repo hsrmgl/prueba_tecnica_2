@@ -77,7 +77,12 @@ class SupplierTest {
         s.updateRating(SustainabilityRating.A);
         assertEquals(SupplierStatus.ACTIVE, s.status());
 
+        s.updateRating(SustainabilityRating.C);
+        assertEquals(SupplierStatus.ON_PROBATION, s.status());
+
         s.ban();
+        assertEquals(SupplierStatus.DISQUALIFIED, s.status());
+
         s.updateRating(SustainabilityRating.A);
         assertEquals(SupplierStatus.DISQUALIFIED, s.status(), "disqualified should remain forever");
     }
