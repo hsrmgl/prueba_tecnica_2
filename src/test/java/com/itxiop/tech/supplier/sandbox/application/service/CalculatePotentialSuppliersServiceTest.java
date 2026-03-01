@@ -27,23 +27,24 @@ class CalculatePotentialSuppliersServiceTest {
             @Override
             public List<SupplierRow> findRowsForScoring() {
                 return List.of(
-                        new SupplierRow("S1", 111111111, "ES", 200, "ACTIVE", "B"),
-                        new SupplierRow("S2", 222222222, "ES", 200, "ACTIVE", "B"),
-                        new SupplierRow("S3", 333333333, "ES", 210, "ACTIVE", "B"),
-                        new SupplierRow("S4", 444444444, "ES", 250, "ACTIVE", "B")
+                        new SupplierRow("S1", 111111111, "ES", 2000000, "ACTIVE", "B"),
+                        new SupplierRow("S2", 222222222, "ES", 2000000, "ACTIVE", "B"),
+                        new SupplierRow("S3", 333333333, "ES", 2100000, "ACTIVE", "B"),
+                        new SupplierRow("S4", 444444444, "ES", 2500000, "ACTIVE", "B")
                 );
             }
         };
 
         var svc = new CalculatePotentialSuppliersService(repo);
 
-        var res = svc.calculate(new CalculatePotentialSuppliersUseCase.Command(0, 10, 0));
+        var res = svc.calculate(new CalculatePotentialSuppliersUseCase.Command(250, 10, 0));
 
         assertEquals(4, res.total());
 
-        assertEquals(444444444, res.data().get(0).duns());
-        assertTrue(res.data().stream().anyMatch(r -> r.duns() == 333333333 && r.score() > (210 * 0.1 * 0.75)));
-        assertTrue(res.data().stream().anyMatch(r -> r.duns() == 111111111 && r.score() > (200 * 0.1 * 0.75)));
+        // S3 (2100000, B, bonus) has highest score: 2100000*0.1*0.75*1.25 = 196875
+        assertEquals(333333333, res.data().get(0).duns());
+        assertTrue(res.data().stream().anyMatch(r -> r.duns() == 333333333 && r.score() > (2100000 * 0.1 * 0.75)));
+        assertTrue(res.data().stream().anyMatch(r -> r.duns() == 111111111 && r.score() > (2000000 * 0.1 * 0.75)));
     }
 
     @Test
@@ -70,7 +71,7 @@ class CalculatePotentialSuppliersServiceTest {
         };
 
         var svc = new CalculatePotentialSuppliersService(repo);
-        var res = svc.calculate(new CalculatePotentialSuppliersUseCase.Command(0, 2, 1));
+        var res = svc.calculate(new CalculatePotentialSuppliersUseCase.Command(250, 2, 1));
 
         assertEquals(3, res.total());
         assertEquals(2, res.data().size());
